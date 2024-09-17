@@ -39,7 +39,6 @@ func (s ParcelStore) Add(p Parcel) (int, error) {
 func (s ParcelStore) Get(number int) (Parcel, error) {
 	// реализуйте чтение строки по заданному number
 	// здесь из таблицы должна вернуться только одна строка
-	//my- select QueryRow
 	// заполните объект Parcel данными из таблицы
 	row := s.db.QueryRow("SELECT number, client, status, address, created_at FROM parcel WHERE number = :number",
 		sql.Named("number", number))
@@ -78,9 +77,11 @@ func (s ParcelStore) GetByClient(client int) ([]Parcel, error) {
 			err = errors.Wrap(err, "не удалось прочитать данные из строк")
 			return nil, err
 		}
+		//if err = rows.Err(); err != nil {
+		// handle the error here }
+
 		res = append(res, p)
 	}
-
 	return res, nil
 
 }
@@ -102,9 +103,10 @@ func (s ParcelStore) SetAddress(number int, address string) error {
 	// реализуйте обновление адреса в таблице parcel
 	// менять адрес можно только если значение статуса registered
 	//my update
-	_, err := s.db.Exec("UPDATE parcel SET address = :address WHERE number = :number",
+	_, err := s.db.Exec("UPDATE parcel SET address = :address WHERE number = :number AND status = :status",
 		sql.Named("address", address),
-		sql.Named("number", number))
+		sql.Named("number", number),
+		sql.Named("status", "registered"))
 
 	if err != nil {
 		err = errors.Wrap(err, "не удалось обновить ячейку строки")
@@ -117,8 +119,9 @@ func (s ParcelStore) Delete(number int) error {
 	// реализуйте удаление строки из таблицы parcel
 	// удалять строку можно только если значение статуса registered
 	//my-delete
-	_, err := s.db.Exec("DELETE FROM parcel WHERE number = :number",
-		sql.Named("number", number))
+	_, err := s.db.Exec("DELETE FROM parcel WHERE number = :number AND status = :status",
+		sql.Named("number", number),
+		sql.Named("status", "registered"))
 	if err != nil {
 		err = errors.Wrap(err, "не удалось удалить строку")
 		return err

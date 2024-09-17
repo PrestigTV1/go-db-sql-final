@@ -33,9 +33,7 @@ func getTestParcel() Parcel {
 func TestAddGetDelete(t *testing.T) {
 	// prepare
 	db, err := sql.Open("sqlite", "tracker.db") // настройте подключение к БД
-	if err != nil {
-		require.NoError(t, err)
-	}
+	require.NoError(t, err)
 
 	defer db.Close()
 
@@ -53,10 +51,8 @@ func TestAddGetDelete(t *testing.T) {
 	// проверьте, что значения всех полей в полученном объекте совпадают со значениями полей в переменной parcel
 	checkParcel, err := store.Get(id)
 	require.NoError(t, err)
-	assert.Equal(t, checkParcel.Client, parcel.Client)
-	assert.Equal(t, checkParcel.Status, parcel.Status)
-	assert.Equal(t, checkParcel.Address, parcel.Address)
-	assert.Equal(t, checkParcel.CreatedAt, parcel.CreatedAt)
+	assert.Equal(t, checkParcel, parcel)
+
 	// delete
 	// удалите добавленную посылку, убедитесь в отсутствии ошибки
 	// проверьте, что посылку больше нельзя получить из БД
@@ -66,6 +62,7 @@ func TestAddGetDelete(t *testing.T) {
 	checkParcel, err = store.Get(id)
 	require.Error(t, err) // не понимаю здесь нужно обязательно или assert если вернет пустоту
 	require.Empty(t, checkParcel)
+	assert.EqualError(t, err, "не удалось прочитать данные из строки")
 
 }
 
@@ -73,9 +70,7 @@ func TestAddGetDelete(t *testing.T) {
 func TestSetAddress(t *testing.T) {
 	// prepare
 	db, err := sql.Open("sqlite", "tracker.db") // настройте подключение к БД
-	if err != nil {
-		require.NoError(t, err)
-	}
+	require.NoError(t, err)
 
 	defer db.Close()
 
@@ -105,9 +100,7 @@ func TestSetAddress(t *testing.T) {
 func TestSetStatus(t *testing.T) {
 	// prepare
 	db, err := sql.Open("sqlite", "tracker.db") // настройте подключение к БД
-	if err != nil {
-		require.NoError(t, err)
-	}
+	require.NoError(t, err)
 
 	defer db.Close()
 
@@ -135,9 +128,7 @@ func TestSetStatus(t *testing.T) {
 func TestGetByClient(t *testing.T) {
 	// prepare
 	db, err := sql.Open("sqlite", "tracker.db") // настройте подключение к БД
-	if err != nil {
-		require.NoError(t, err)
-	}
+	require.NoError(t, err)
 
 	defer db.Close()
 	store := NewParcelStore(db)
@@ -173,16 +164,12 @@ func TestGetByClient(t *testing.T) {
 	assert.Len(t, storedParcels, len(parcelMap))    // убедитесь, что количество полученных посылок совпадает с количеством добавленных
 
 	// check
-	for _, parcel := range storedParcels {
+	var parcelMapSlice []Parcel
+	for _, parcel := range parcelMap {
 		// в parcelMap лежат добавленные посылки, ключ - идентификатор посылки, значение - сама посылка
 		// убедитесь, что все посылки из storedParcels есть в parcelMap
 		// убедитесь, что значения полей полученных посылок заполнены верно
-		originalParcel := parcelMap[parcel.Number]
-
-		require.Equal(t, parcel.Number, originalParcel.Number)
-		require.Equal(t, parcel.Client, originalParcel.Client)
-		require.Equal(t, parcel.Status, originalParcel.Status)
-		require.Equal(t, parcel.Address, originalParcel.Address)
-		require.Equal(t, parcel.CreatedAt, originalParcel.CreatedAt)
+		parcelMapSlice = append(parcelMapSlice, parcel)
 	}
+	assert.EqualValues(t, storedParcels, parcelMapSlice, "Посылки из БД не совпадают с добавленными")
 }
