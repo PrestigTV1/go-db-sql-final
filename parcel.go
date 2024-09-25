@@ -77,10 +77,10 @@ func (s ParcelStore) GetByClient(client int) ([]Parcel, error) {
 			err = errors.Wrap(err, "не удалось прочитать данные из строк")
 			return nil, err
 		}
-		//if err = rows.Err(); err != nil {
-		// handle the error here }
 
-		res = append(res, p)
+		if err = rows.Err(); err != nil {
+			res = append(res, p)
+		}
 	}
 	return res, nil
 
@@ -106,7 +106,7 @@ func (s ParcelStore) SetAddress(number int, address string) error {
 	_, err := s.db.Exec("UPDATE parcel SET address = :address WHERE number = :number AND status = :status",
 		sql.Named("address", address),
 		sql.Named("number", number),
-		sql.Named("status", "registered"))
+		sql.Named("status", ParcelStatusRegistered))
 
 	if err != nil {
 		err = errors.Wrap(err, "не удалось обновить ячейку строки")
@@ -121,7 +121,7 @@ func (s ParcelStore) Delete(number int) error {
 	//my-delete
 	_, err := s.db.Exec("DELETE FROM parcel WHERE number = :number AND status = :status",
 		sql.Named("number", number),
-		sql.Named("status", "registered"))
+		sql.Named("status", ParcelStatusRegistered))
 	if err != nil {
 		err = errors.Wrap(err, "не удалось удалить строку")
 		return err

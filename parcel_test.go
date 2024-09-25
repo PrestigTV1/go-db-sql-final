@@ -51,6 +51,7 @@ func TestAddGetDelete(t *testing.T) {
 	// проверьте, что значения всех полей в полученном объекте совпадают со значениями полей в переменной parcel
 	checkParcel, err := store.Get(id)
 	require.NoError(t, err)
+	parcel.Number = id
 	assert.Equal(t, checkParcel, parcel)
 
 	// delete
@@ -62,7 +63,7 @@ func TestAddGetDelete(t *testing.T) {
 	checkParcel, err = store.Get(id)
 	require.Error(t, err) // не понимаю здесь нужно обязательно или assert если вернет пустоту
 	require.Empty(t, checkParcel)
-	assert.EqualError(t, err, "не удалось прочитать данные из строки")
+	assert.ErrorIs(t, err, sql.ErrNoRows)
 
 }
 
@@ -114,7 +115,7 @@ func TestSetStatus(t *testing.T) {
 
 	// set status
 	// обновите статус, убедитесь в отсутствии ошибки
-	err = store.SetStatus(id, parcel.Status)
+	err = store.SetStatus(id, ParcelStatusSent)
 	require.NoError(t, err)
 
 	// check
@@ -171,5 +172,5 @@ func TestGetByClient(t *testing.T) {
 		// убедитесь, что значения полей полученных посылок заполнены верно
 		parcelMapSlice = append(parcelMapSlice, parcel)
 	}
-	assert.EqualValues(t, storedParcels, parcelMapSlice, "Посылки из БД не совпадают с добавленными")
+	assert.ElementsMatch(t, storedParcels, parcelMapSlice, "Посылки из БД не совпадают с добавленными")
 }
